@@ -8,8 +8,10 @@ from fastapi import HTTPException
 from starlette.background import BackgroundTask
 
 from app.services.emotion import detect_emotion
-from app.services.mapper import map_emotion_to_voice
+from app.services.mapper import map_emotion_to_voice, apply_variation
 from app.services.tts import generate_speech
+
+from app.services.text_enhancer import enhance_text_for_emotion, add_pauses
 
 router = APIRouter()
 
@@ -19,12 +21,19 @@ def speak(text: str = Query(..., description="Input text")):
     # 1. Detect emotion
     emotion, score = detect_emotion(text)
 
+    text = enhance_text_for_emotion(text, emotion)
+
+    text = add_pauses(text, emotion)
+
     # 2. Map to voice params
     rate, volume = map_emotion_to_voice(emotion, score)
 
-    # 3. Generate speech
-    audio_path = generate_speech(text, rate, volume)
+    rate, volume = apply_variation(rate, volume)
+    
 
+    # 3. Generate speech
+    audio_path = generate_speech(text, rate, volume, emotion)
+    
     filename = os.path.basename(audio_path)
     return {
         "input_text": text,

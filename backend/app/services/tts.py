@@ -5,8 +5,20 @@ import time
 
 OUTPUT_DIR = "static/audio"
 
-def generate_speech(text, rate, volume):
+def select_voice(engine, emotion):
+    voices = engine.getProperty('voices')
+
+    if emotion in ["sadness", "fear"]:
+        engine.setProperty('voice', voices[1].id)  # softer
+    else:
+        engine.setProperty('voice', voices[0].id)  # default
+
+
+def generate_speech(text, rate, volume, emotion):
     engine = pyttsx3.init()
+
+    # 🔥 APPLY VOICE BASED ON EMOTION
+    select_voice(engine, emotion)
 
     engine.setProperty('rate', rate)
     engine.setProperty('volume', volume)
@@ -16,11 +28,10 @@ def generate_speech(text, rate, volume):
 
     engine.save_to_file(text, filepath)
     engine.runAndWait()
+    
 
-    # 🔥 IMPORTANT: ensure file is written
     time.sleep(0.5)
 
-    # 🔥 Check file size
     if os.path.exists(filepath):
         size = os.path.getsize(filepath)
         print("Generated file size:", size)
