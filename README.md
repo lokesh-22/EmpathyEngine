@@ -299,6 +299,12 @@ Important note:
 
 - [empathy-frontend/src/App.tsx](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/empathy-frontend/src/App.tsx:1) currently hardcodes `http://localhost:8000` as the backend URL
 
+## UI Preview
+
+<p align="center">
+  <img src="./ui.jpeg" alt="Empathy Engine UI" width="900" />
+</p>
+
 ## Adding a UI Screenshot to README
 
 The easiest way is:
