@@ -1,9 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
-import heroImage from "./assets/hero.png";
 
 const API_BASE_URL = "http://localhost:8000";
+
+const MODEL_OPTIONS = {
+  local: {
+    label: "Local expressive",
+    endpoint: "/speak",
+    playbackFormat: "wav",
+  },
+  google: {
+    label: "Google Neural",
+    endpoint: "/speak/google",
+    playbackFormat: "mp3",
+  },
+} as const;
+
+type ModelKey = keyof typeof MODEL_OPTIONS;
 
 function App() {
   const [text, setText] = useState("");
@@ -11,6 +25,7 @@ function App() {
   const [emotion, setEmotion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedModel, setSelectedModel] = useState<ModelKey>("local");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -22,9 +37,14 @@ function App() {
     setAudioUrl(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/speak`, null, {
+      const currentModel = MODEL_OPTIONS[selectedModel];
+      const response = await axios.post(
+        `${API_BASE_URL}${currentModel.endpoint}`,
+        null,
+        {
         params: { text },
-      });
+        },
+      );
 
       const filename = response.data.audio_file;
       setEmotion(response.data.emotion);
@@ -32,7 +52,7 @@ function App() {
       const audioResponse = await axios.get(`${API_BASE_URL}/get-audio`, {
         params: {
           filename,
-          format: "wav",
+          format: response.data.playback_format || currentModel.playbackFormat,
         },
         responseType: "blob",
       });
@@ -71,42 +91,14 @@ function App() {
 
   return (
     <main className="app-shell">
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <p className="eyebrow">Emotion-aware speech studio</p>
-          <h1>Turn plain text into voice that actually feels human.</h1>
-          <p className="hero-text">
-            Empathy Engine detects tone, shapes delivery, and returns spoken
-            audio with emotional pacing and energy.
-          </p>
-
-          <div className="hero-tags">
-            <span>Emotion detection</span>
-            <span>Adaptive pacing</span>
-            <span>Playable audio</span>
-          </div>
-        </div>
-
-        <div className="hero-visual" aria-hidden="true">
-          <div className="hero-glow hero-glow-one" />
-          <div className="hero-glow hero-glow-two" />
-          <img src={heroImage} alt="" className="hero-image" />
-          <div className="signal-card signal-card-top">
-            <span className="signal-label">Live tone</span>
-            <strong>{emotion || "Waiting"}</strong>
-          </div>
-          <div className="signal-card signal-card-bottom">
-            <span className="signal-label">Playback</span>
-            <strong>{audioUrl ? "Ready" : "Idle"}</strong>
-          </div>
-        </div>
-      </section>
-
       <section className="composer-panel">
         <div className="composer-head">
-          <div>
+          <div className="composer-title-block">
             <p className="panel-kicker">Compose</p>
-            <h2>Craft a message and hear its emotional delivery.</h2>
+            <h1>Empathy Engine</h1>
+            <p className="composer-subtitle">
+              A centered speech studio for emotionally aware voice generation.
+            </p>
           </div>
           <div className="composer-meta">
             <div className="meta-pill">
@@ -128,6 +120,23 @@ function App() {
             onChange={(e) => setText(e.target.value)}
             className="composer-textarea"
           />
+          <div className="model-picker">
+            <label className="model-picker-label" htmlFor="voice-model">
+              Voice model
+            </label>
+            <select
+              id="voice-model"
+              className="model-picker-select"
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value as ModelKey)}
+            >
+              {Object.entries(MODEL_OPTIONS).map(([value, option]) => (
+                <option key={value} value={value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </label>
 
         <div className="composer-actions">

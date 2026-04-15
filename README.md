@@ -1,7 +1,12 @@
 # Empathy Engine
 
-Empathy Engine is a full-stack text-to-speech project that tries to make spoken output feel more expressive.
-The backend detects the emotion in a user's message, adjusts the text and voice settings, generates speech, and then serves audio to the frontend for playback.
+Empathy Engine is a full-stack text-to-speech project that turns plain text into more expressive spoken audio.
+It supports two selectable speech models:
+
+- `Local expressive`: emotion-aware local speech generation using `pyttsx3`
+- `Google Neural`: cloud speech generation using Google Text-to-Speech
+
+The frontend provides a centered single-page studio UI where users can type a message, choose a model, generate speech, and play the result in the browser.
 
 ## Project Structure
 
@@ -9,52 +14,75 @@ The backend detects the emotion in a user's message, adjusts the text and voice 
 EmpathyEngine/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py
 │   │   ├── config.py
+│   │   ├── main.py
 │   │   ├── routes/
+│   │   │   ├── tts_google.py
 │   │   │   └── tts_routes.py
 │   │   └── services/
 │   │       ├── emotion.py
 │   │       ├── mapper.py
 │   │       ├── text_enhancer.py
 │   │       └── tts.py
+│   ├── .env.example
 │   ├── requirements.txt
 │   └── static/audio/
 └── empathy-frontend/
     ├── src/
     │   ├── App.tsx
-    │   └── main.tsx
+    │   ├── App.css
+    │   └── index.css
     ├── package.json
     └── vite.config.ts
 ```
 
-## How It Works
+## Core Logic
 
-### Backend flow
+### Shared flow
 
-1. The frontend sends text to `POST /speak`.
-2. The backend classifies the text emotion using a Hugging Face Transformers model.
-3. The text is lightly rewritten to better match the detected emotion.
-4. The backend maps emotion intensity into `rate` and `volume`.
-5. A small random variation is added so speech feels less robotic.
-6. `pyttsx3` generates an audio file into `backend/static/audio/`.
-7. The frontend requests `GET /get-audio?filename=...&format=wav`.
-8. The backend converts the generated file into a browser-safe playback file and streams it back.
+1. The frontend sends input text to a backend speech endpoint.
+2. The backend detects emotion using a Hugging Face transformer model.
+3. The text is enhanced with punctuation and pause shaping.
+4. The selected TTS model generates audio into `backend/static/audio/`.
+5. The frontend requests the generated file through `GET /get-audio`.
+6. The browser plays the returned audio blob inside the UI.
 
-### Core logic files
+### Local expressive model
+
+The local path:
+
+- uses `POST /speak`
+- maps emotion to `rate` and `volume`
+- adds small random variation for a more human feel
+- keeps the normal local system voice without emotion-based voice switching
+- generates a local audio file using `pyttsx3`
+- converts playback to browser-safe `wav` when needed
+
+### Google Neural model
+
+The Google path:
+
+- uses `POST /speak/google`
+- generates `mp3` using Google Cloud Text-to-Speech
+- reads credentials from `backend/.env`
+- serves `mp3` playback directly when the file is already browser-safe
+
+## Important Files
 
 - [backend/app/services/emotion.py](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/backend/app/services/emotion.py:1)
-  Detects the strongest emotion label and confidence score.
+  Detects emotion and confidence score.
 - [backend/app/services/text_enhancer.py](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/backend/app/services/text_enhancer.py:1)
-  Adds emotional punctuation and pauses before speech generation.
+  Adds emotional text shaping and pauses.
 - [backend/app/services/mapper.py](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/backend/app/services/mapper.py:1)
-  Converts emotion plus confidence into speaking rate and volume.
+  Maps emotion to local expressive speaking parameters.
 - [backend/app/services/tts.py](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/backend/app/services/tts.py:1)
-  Generates the raw speech file with `pyttsx3`.
+  Generates local expressive speech audio.
 - [backend/app/routes/tts_routes.py](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/backend/app/routes/tts_routes.py:1)
-  Orchestrates the whole backend flow and serves playable audio.
+  Handles the local expressive route and playback file serving.
+- [backend/app/routes/tts_google.py](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/backend/app/routes/tts_google.py:1)
+  Handles the Google Neural route and credential-driven client setup.
 - [empathy-frontend/src/App.tsx](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/empathy-frontend/src/App.tsx:1)
-  Handles text input, calls the backend, and plays the returned audio.
+  Provides the centered single-page UI and model selection dropdown.
 
 ## Tech Stack
 
@@ -62,9 +90,10 @@ EmpathyEngine/
 
 - FastAPI
 - Uvicorn
-- Transformers pipeline
-- Hugging Face model: `j-hartmann/emotion-english-distilroberta-base`
-- `pyttsx3` for local speech generation
+- Transformers
+- Hugging Face emotion model: `j-hartmann/emotion-english-distilroberta-base`
+- `pyttsx3`
+- Google Cloud Text-to-Speech
 
 ### Frontend
 
@@ -78,7 +107,7 @@ EmpathyEngine/
 ### Backend
 
 - Python 3.11 recommended
-- macOS is the current best-fit environment for this setup because playback conversion uses the built-in `afconvert` tool
+- macOS is currently the best-fit environment for the local playback conversion path because it uses `afconvert`
 
 ### Frontend
 
@@ -89,18 +118,35 @@ EmpathyEngine/
 
 The backend reads environment variables from `backend/.env`.
 
-Required variable:
+### Required
 
 ```env
 HF_TOKEN=your_huggingface_token_here
 ```
 
+### Google model credentials
+
+Use either of these:
+
+```env
+GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/service-account.json
+```
+
+or
+
+```env
+GOOGLE_API_KEY=your_google_api_key
+```
+
 Notes:
 
-- `HF_TOKEN` is used when loading the Hugging Face emotion model.
-- `backend/.env.example` exists as the template location for environment setup.
+- `GOOGLE_APPLICATION_CREDENTIALS` is the more standard and reliable option
+- `GOOGLE_API_KEY` is supported by the current code as a fallback
+- the template file is [backend/.env.example](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/backend/.env.example:1)
 
-## Backend Setup
+## Setup
+
+### Backend
 
 From the project root:
 
@@ -109,17 +155,15 @@ cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-Create the env file:
-
-```bash
 cp .env.example .env
 ```
 
-Then edit `.env` and add your Hugging Face token.
+Then edit `backend/.env` and fill in:
 
-## Frontend Setup
+- `HF_TOKEN`
+- `GOOGLE_APPLICATION_CREDENTIALS` or `GOOGLE_API_KEY` if you want the Google model
+
+### Frontend
 
 From the project root:
 
@@ -132,7 +176,7 @@ npm install
 
 Open two terminals.
 
-### Terminal 1: start the backend
+### Terminal 1: backend
 
 ```bash
 cd backend
@@ -140,20 +184,20 @@ source .venv/bin/activate
 uvicorn app.main:app --reload
 ```
 
-Backend runs at:
+Backend URL:
 
 ```text
 http://localhost:8000
 ```
 
-### Terminal 2: start the frontend
+### Terminal 2: frontend
 
 ```bash
 cd empathy-frontend
 npm run dev
 ```
 
-Frontend usually runs at:
+Frontend URL:
 
 ```text
 http://localhost:5173
@@ -161,14 +205,14 @@ http://localhost:5173
 
 ## Build Commands
 
-### Frontend production build
+### Frontend build
 
 ```bash
 cd empathy-frontend
 npm run build
 ```
 
-### Frontend preview build
+### Frontend preview
 
 ```bash
 cd empathy-frontend
@@ -179,11 +223,7 @@ npm run preview
 
 ### `POST /speak`
 
-Generates emotion-aware speech metadata and writes the audio file.
-
-Query parameter:
-
-- `text`: input message to speak
+Local expressive speech generation.
 
 Example:
 
@@ -204,60 +244,96 @@ Example response:
 }
 ```
 
+### `POST /speak/google`
+
+Google Neural speech generation.
+
+Example:
+
+```bash
+curl -X POST "http://localhost:8000/speak/google?text=I%20am%20so%20happy%20to%20see%20you"
+```
+
+Example response:
+
+```json
+{
+  "input_text": "Wow! I am so happy to see you!",
+  "emotion": "joy",
+  "confidence": 0.981,
+  "audio_file": "example-file.mp3",
+  "provider": "google",
+  "playback_format": "mp3"
+}
+```
+
 ### `GET /get-audio`
 
-Returns a browser-playable version of the generated file.
+Returns the generated file in a browser-playable format.
 
 Query parameters:
 
-- `filename`: the file returned by `/speak`
+- `filename`
 - `format`: `wav` or `mp3`
 
-Recommended:
-
-```text
-format=wav
-```
-
-Example:
+Examples:
 
 ```bash
 curl "http://localhost:8000/get-audio?filename=example-file.wav&format=wav" --output playback.wav
 ```
 
-## Frontend Behavior
+```bash
+curl "http://localhost:8000/get-audio?filename=example-file.mp3&format=mp3" --output playback.mp3
+```
 
-The frontend currently:
+## Frontend UI
 
-- sends user text to `http://localhost:8000/speak`
-- reads the returned `audio_file`
-- requests playback audio from `http://localhost:8000/get-audio`
-- converts the response blob into a browser object URL
-- plays that audio inside an HTML `<audio>` element
+The frontend is now a centered single-page speech studio with:
+
+- one main chat-style composer in the center
+- model selection dropdown inside the message box at the bottom-right
+- local expressive and Google Neural model switching
+- emotion display and audio playback area on the same screen
 
 Important note:
 
 - [empathy-frontend/src/App.tsx](/Users/lokii/Documents/EmpathyEngine/EmpathyEngine/empathy-frontend/src/App.tsx:1) currently hardcodes `http://localhost:8000` as the backend URL
 
-## Current Core Logic Summary
+## Adding a UI Screenshot to README
 
-This project is not a generic TTS app. Its main idea is:
+The easiest way is:
 
-- understand the emotion in the text
-- reshape the text a little to sound more expressive
-- map emotion strength into speech speed and loudness
-- generate local speech audio
-- return a browser-safe playback file to the frontend
+1. Save the image inside the repo, for example:
+   `empathy-frontend/public/ui-preview.png`
+2. Add this markdown to `README.md`:
 
-In short: text in, emotion-aware speech out.
+```md
+## UI Preview
+
+![Empathy Engine UI](./empathy-frontend/public/ui-preview.png)
+```
+
+If you want a centered image with HTML instead, use:
+
+```html
+<p align="center">
+  <img src="./empathy-frontend/public/ui-preview.png" alt="Empathy Engine UI" width="900" />
+</p>
+```
+
+Recommended:
+
+- use a `.png`
+- keep the file name simple, like `ui-preview.png`
+- store it in a tracked folder inside the repo
 
 ## Known Notes
 
-- The backend writes generated files into `backend/static/audio/`.
-- Generated audio files are runtime artifacts and should not be committed.
-- The playback conversion step is separate from generation because the raw generated audio is not always directly browser-friendly.
-- `mp3` playback conversion may depend on the local machine and codec support, while `wav` is the safer playback option in the current codebase.
-- The project currently uses permissive CORS in development: `allow_origins=["*"]`.
+- generated audio files are written into `backend/static/audio/`
+- generated audio files are runtime artifacts and should not be committed
+- local expressive playback still uses conversion for browser compatibility
+- Google `mp3` playback is usually served directly when no conversion is needed
+- the project currently uses permissive CORS for development
 
 ## Troubleshooting
 
@@ -265,37 +341,30 @@ In short: text in, emotion-aware speech out.
 
 Check:
 
-- virtual environment is activated
+- the virtual environment is activated
 - dependencies are installed
-- `HF_TOKEN` is present in `backend/.env`
+- `HF_TOKEN` exists in `backend/.env`
 
-### Emotion model fails to load
+### Google model does not work
 
 Check:
 
-- internet access for first model download
-- valid Hugging Face token
-- installed `transformers`, `torch`, and related dependencies
+- `GOOGLE_APPLICATION_CREDENTIALS` path is valid, or `GOOGLE_API_KEY` is set
+- Google Cloud Text-to-Speech is enabled in your Google project
+- the backend was restarted after editing `.env`
 
 ### Audio file is generated but browser does not play it
 
 Check:
 
 - backend is running on `http://localhost:8000`
-- frontend is requesting `format=wav`
-- the requested filename exists inside `backend/static/audio/`
+- frontend model selection matches the intended path
+- local expressive uses `wav` playback
+- Google Neural uses `mp3` playback
 
 ### Frontend cannot reach backend
 
 Check:
 
 - backend is running before frontend requests are made
-- the frontend constant `API_BASE_URL` still matches your backend URL
-
-## Suggested Next Improvements
-
-- move the frontend backend URL into an environment variable
-- clean and simplify `backend/requirements.txt` to direct dependencies only
-- add tests for mapping and route behavior
-- add a simple health check endpoint
-- improve the UI styling and audio status feedback
+- `API_BASE_URL` in the frontend still matches your backend URL

@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+from mimetypes import guess_type
 from fastapi import APIRouter, Query
 from fastapi.responses import FileResponse
 from fastapi import HTTPException
@@ -111,6 +112,17 @@ def get_audio(
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
+
+    source_extension = os.path.splitext(file_path)[1].lower()
+    requested_extension = f".{format}"
+
+    if source_extension == ".mp3" and requested_extension == ".mp3":
+        media_type = guess_type(file_path)[0] or "application/octet-stream"
+        return FileResponse(
+            path=file_path,
+            media_type=media_type,
+            filename=os.path.basename(file_path),
+        )
 
     playback_path, media_type = _convert_for_browser(file_path, format)
     download_name = f"{os.path.splitext(filename)[0]}.{format}"

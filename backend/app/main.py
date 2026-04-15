@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.routes.tts_routes import router
+from app.routes.tts_google import router as google_router
 
 app = FastAPI(title="Empathy Engine")
 
@@ -18,3 +19,4 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(router)
+app.include_router(google_router)

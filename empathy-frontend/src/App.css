@@ -1,32 +1,24 @@
 .app-shell {
-  width: min(1180px, calc(100% - 32px));
+  width: min(980px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 42px 0 64px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
 }
 
-.hero-panel {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 28px;
-  align-items: stretch;
-}
-
-.hero-copy,
 .composer-panel {
+  width: 100%;
   border: 1px solid rgba(62, 42, 31, 0.12);
   background:
     linear-gradient(180deg, rgba(255, 250, 244, 0.92), rgba(255, 245, 235, 0.82));
   box-shadow: 0 24px 70px rgba(67, 42, 21, 0.08);
   backdrop-filter: blur(10px);
-}
-
-.hero-copy {
   border-radius: 34px;
-  padding: 46px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 460px;
+  padding: 30px;
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
 }
 
 .eyebrow,
@@ -41,137 +33,40 @@
   font-weight: 700;
 }
 
-.eyebrow,
 .panel-kicker {
   color: #a4512f;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
-.hero-copy h1,
-.composer-head h2 {
+.composer-title-block h1 {
   margin: 0;
   color: #21140f;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
-  line-height: 0.94;
+  line-height: 0.95;
 }
 
-.hero-copy h1 {
-  font-size: clamp(3.3rem, 7vw, 5.6rem);
-  letter-spacing: -0.07em;
-  max-width: 8ch;
+.composer-title-block h1 {
+  font-size: clamp(2.4rem, 5vw, 4.1rem);
+  letter-spacing: -0.06em;
 }
 
-.hero-text {
-  margin-top: 24px;
-  max-width: 32rem;
+.composer-subtitle {
+  margin-top: 10px;
+  max-width: 34rem;
   color: #5c4a3d;
-  font-size: 1.05rem;
-}
-
-.hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 28px;
-}
-
-.hero-tags span {
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(164, 81, 47, 0.18);
-  color: #6d3921;
-  font-size: 0.92rem;
-}
-
-.hero-visual {
-  position: relative;
-  overflow: hidden;
-  border-radius: 34px;
-  min-height: 460px;
-  background:
-    radial-gradient(circle at top left, rgba(255, 198, 153, 0.95), transparent 35%),
-    radial-gradient(circle at bottom right, rgba(255, 232, 205, 0.95), transparent 32%),
-    linear-gradient(145deg, #261914, #5a3528 52%, #e3b07f);
-  box-shadow: 0 26px 80px rgba(51, 26, 14, 0.22);
-}
-
-.hero-image {
-  position: absolute;
-  right: -4%;
-  bottom: -2%;
-  width: min(94%, 430px);
-  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.28));
-}
-
-.hero-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(10px);
-}
-
-.hero-glow-one {
-  width: 220px;
-  height: 220px;
-  top: 12%;
-  left: 10%;
-  background: rgba(255, 236, 213, 0.28);
-}
-
-.hero-glow-two {
-  width: 180px;
-  height: 180px;
-  right: 12%;
-  top: 18%;
-  background: rgba(255, 164, 96, 0.3);
-}
-
-.signal-card {
-  position: absolute;
-  padding: 16px 18px;
-  border-radius: 18px;
-  min-width: 150px;
-  background: rgba(255, 250, 245, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow: 0 18px 36px rgba(30, 12, 6, 0.16);
-  color: #28140d;
-}
-
-.signal-card strong {
-  display: block;
-  margin-top: 8px;
-  font-size: 1.1rem;
-  text-transform: capitalize;
-}
-
-.signal-card-top {
-  top: 26px;
-  left: 24px;
-}
-
-.signal-card-bottom {
-  left: 34px;
-  bottom: 28px;
+  font-size: 0.98rem;
 }
 
 .composer-panel {
-  margin-top: 28px;
-  border-radius: 34px;
-  padding: 34px;
+  position: relative;
 }
 
 .composer-head {
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  align-items: flex-start;
-  margin-bottom: 28px;
-}
-
-.composer-head h2 {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  letter-spacing: -0.05em;
-  max-width: 12ch;
+  align-items: end;
+  margin-bottom: 22px;
 }
 
 .composer-meta {
@@ -197,6 +92,7 @@
 
 .composer-field {
   display: block;
+  position: relative;
 }
 
 .field-label {
@@ -207,17 +103,52 @@
 
 .composer-textarea {
   width: 100%;
-  min-height: 170px;
-  resize: vertical;
+  min-height: 220px;
+  max-height: 220px;
+  resize: none;
   border: 1px solid rgba(164, 81, 47, 0.18);
   border-radius: 26px;
-  padding: 22px;
+  padding: 22px 22px 94px;
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.82);
   color: #251713;
   font: inherit;
   line-height: 1.6;
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.model-picker {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.model-picker-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a5b44;
+  font-weight: 700;
+}
+
+.model-picker-select {
+  min-width: 178px;
+  border: 1px solid rgba(164, 81, 47, 0.18);
+  border-radius: 999px;
+  padding: 12px 16px;
+  background: rgba(255, 250, 245, 0.94);
+  color: #301d16;
+  box-shadow: 0 8px 20px rgba(87, 45, 24, 0.08);
+}
+
+.model-picker-select:focus {
+  outline: none;
+  border-color: rgba(176, 79, 34, 0.75);
+  box-shadow: 0 0 0 4px rgba(232, 174, 122, 0.18);
 }
 
 .composer-textarea:focus {
@@ -276,7 +207,7 @@
 
 .results-grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 240px 1fr;
   gap: 18px;
   margin-top: 24px;
 }
@@ -328,51 +259,45 @@
 
 @media (max-width: 920px) {
   .app-shell {
-    width: min(100% - 24px, 1180px);
-    padding: 18px 0 34px;
+    width: min(100% - 24px, 980px);
+    min-height: auto;
+    padding: 12px 0 20px;
   }
 
-  .hero-panel {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-copy,
-  .hero-visual,
   .composer-panel {
     border-radius: 26px;
-  }
-
-  .hero-copy,
-  .composer-panel {
-    padding: 26px;
-  }
-
-  .hero-copy {
-    min-height: auto;
-  }
-
-  .hero-visual {
-    min-height: 360px;
-  }
-
-  .hero-image {
-    width: min(90%, 320px);
-    right: -2%;
+    padding: 24px;
+    max-height: none;
+    overflow: visible;
   }
 
   .composer-head,
   .composer-actions,
   .results-grid {
-    grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
   }
 
   .results-grid {
-    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .primary-button {
     width: 100%;
+  }
+
+  .model-picker {
+    position: static;
+    align-items: stretch;
+    margin-top: 14px;
+  }
+
+  .model-picker-select {
+    width: 100%;
+  }
+
+  .composer-textarea {
+    min-height: 180px;
+    max-height: 180px;
   }
 }
