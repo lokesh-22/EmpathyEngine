@@ -8,6 +8,7 @@ function App() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [emotion, setEmotion] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -15,6 +16,7 @@ function App() {
     if (!text) return;
 
     setLoading(true);
+    setError("");
     setAudioUrl(null);
 
     try {
@@ -26,11 +28,27 @@ function App() {
 
       const filename = response.data.audio_file;
       setEmotion(response.data.emotion);
-      setAudioUrl(`${API_BASE_URL}/get-audio?filename=${encodeURIComponent(filename)}`);
+
+      const audioResponse = await axios.get(
+        `${API_BASE_URL}/get-audio`,
+        {
+          params: {
+            filename,
+            format: "wav",
+          },
+          responseType: "blob",
+        }
+      );
+
+      const contentType = audioResponse.headers["content-type"] || "audio/wav";
+      const url = URL.createObjectURL(
+        new Blob([audioResponse.data], { type: contentType })
+      );
+      setAudioUrl(url);
 
     } catch (err) {
       console.error(err);
-      alert("Error generating audio");
+      setError("Audio could not be played. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -42,8 +60,17 @@ function App() {
       audioRef.current.load();
       audioRef.current.play().catch((error) => {
         console.error("Audio playback failed:", error);
+        setError("Playback failed in the browser.");
       });
     }
+  }, [audioUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
   }, [audioUrl]);
 
   return (
@@ -67,6 +94,8 @@ function App() {
         </p>
       )}
 
+      {error && <p style={styles.error}>{error}</p>}
+
       {audioUrl && (
         <audio
           key={audioUrl}
@@ -74,6 +103,7 @@ function App() {
           controls
           autoPlay
           src={audioUrl}
+          onError={() => setError("The generated audio format was not playable.")}
           style={{ marginTop: "20px", width: "100%" }}
         />
       )}
@@ -98,6 +128,10 @@ const styles: Record<string, CSSProperties> = {
     padding: "10px 20px",
     fontSize: "16px",
     cursor: "pointer",
+  },
+  error: {
+    color: "#b42318",
+    marginTop: "12px",
   },
 };
 
