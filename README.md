@@ -305,34 +305,6 @@ Important note:
   <img src="./ui.jpeg" alt="Empathy Engine UI" width="900" />
 </p>
 
-## Adding a UI Screenshot to README
-
-The easiest way is:
-
-1. Save the image inside the repo, for example:
-   `empathy-frontend/public/ui-preview.png`
-2. Add this markdown to `README.md`:
-
-```md
-## UI Preview
-
-![Empathy Engine UI](./empathy-frontend/public/ui-preview.png)
-```
-
-If you want a centered image with HTML instead, use:
-
-```html
-<p align="center">
-  <img src="./empathy-frontend/public/ui-preview.png" alt="Empathy Engine UI" width="900" />
-</p>
-```
-
-Recommended:
-
-- use a `.png`
-- keep the file name simple, like `ui-preview.png`
-- store it in a tracked folder inside the repo
-
 ## Known Notes
 
 - generated audio files are written into `backend/static/audio/`
